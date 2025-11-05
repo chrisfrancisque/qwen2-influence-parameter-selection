@@ -1,0 +1,15 @@
+# AG News (News Topic Classification - 4 classes)
+
+dataset_name: "agnews"
+hf_path: "ag_news"
+hf_name: null
+num_labels: 4
+text_column: "text"
+label_column: "label"
+
+# Expected label distribution
+label_names:
+  0: "World"
+  1: "Sports"
+  2: "Business"
+  3: "Sci/Tech"

@@ -1,0 +1,16 @@
+# Yelp Review Full (Review Star Rating - 5 classes)
+
+dataset_name: "yelp"
+hf_path: "yelp_review_full"
+hf_name: null
+num_labels: 5
+text_column: "text"
+label_column: "label"
+
+# Expected label distribution
+label_names:
+  0: "1 star"
+  1: "2 stars"
+  2: "3 stars"
+  3: "4 stars"
+  4: "5 stars"

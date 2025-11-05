@@ -1,0 +1,26 @@
+# Core dependencies
+torch>=2.0.0
+torch-xla>=2.0.0  # For TPU support
+transformers>=4.35.0
+datasets>=2.14.0
+peft>=0.7.0  # For LoRA
+
+# Data & ML utilities
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+scipy>=1.11.0
+
+# Logging & visualization
+wandb>=0.15.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+tqdm>=4.65.0
+
+# Config management
+pyyaml>=6.0
+omegaconf>=2.3.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0

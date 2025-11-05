@@ -1,0 +1,98 @@
+# Qwen2-0.5B Influence-Based Parameter Selection Experiment
+# Global Configuration
+
+# Model settings
+model:
+  name: "Qwen/Qwen2-0.5B"
+  dtype: "bfloat16"
+  cache_dir: null
+
+# Hardware
+hardware:
+  device: "tpu"  # or "cuda", "cpu"
+  tpu_cores: 4
+  tpu_zone: "us-central1-a"
+
+# Data settings
+data:
+  seed: 42
+  seq_length: 256
+  head_init_samples: 500
+  train_samples: 1000
+  effective_batch_size: 128
+
+# Training (global defaults)
+training:
+  grad_clip: 1.0
+
+  # Baseline head initialization
+  baseline:
+    epochs: 1
+    lr: 0.001
+    weight_decay: 0.0
+    optimizer: "adamw"
+
+  # LoRA settings
+  lora:
+    rank: 8
+    alpha: 16
+    dropout: 0.0
+    lr: 0.0003
+    weight_decay: 0.01
+    max_epochs: 5
+    patience: 2
+    min_delta: 0.001
+    target_modules:
+      - "q_proj"
+      - "k_proj"
+      - "v_proj"
+      - "o_proj"
+      - "gate_proj"
+      - "up_proj"
+      - "down_proj"
+
+  # Full fine-tuning settings
+  fullft:
+    lr: 0.00001
+    weight_decay: 0.01
+    max_epochs: 5
+    patience: 2
+    min_delta: 0.001
+
+# Influence computation
+influence:
+  mask_fraction: 0.05  # Mask bottom 5% of parameters
+
+  # Modules to include in masking
+  include_patterns:
+    - "self_attn.q_proj"
+    - "self_attn.k_proj"
+    - "self_attn.v_proj"
+    - "self_attn.o_proj"
+    - "mlp.gate_proj"
+    - "mlp.up_proj"
+    - "mlp.down_proj"
+
+  # Modules to exclude from masking
+  exclude_patterns:
+    - "embed_tokens"
+    - "norm"
+    - "classifier"
+    - "rotary_emb"
+    - "lm_head"
+
+# Logging
+logging:
+  use_wandb: true
+  wandb_project: "qwen2-0p5b_comparison"
+  log_interval: 10
+
+# Paths
+paths:
+  output_dir: "outputs"
+  checkpoints_dir: "outputs/checkpoints"
+  masks_dir: "outputs/masks"
+  adapters_dir: "outputs/adapters"
+  logs_dir: "outputs/logs"
+  reports_dir: "outputs/reports"
+  splits_dir: "outputs/splits"

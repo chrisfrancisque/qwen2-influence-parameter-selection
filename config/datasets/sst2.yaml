@@ -1,0 +1,13 @@
+# SST-2 (Stanford Sentiment Treebank - Binary Classification)
+
+dataset_name: "sst2"
+hf_path: "glue"
+hf_name: "sst2"
+num_labels: 2
+text_column: "sentence"
+label_column: "label"
+
+# Expected label distribution
+label_names:
+  0: "negative"
+  1: "positive"
