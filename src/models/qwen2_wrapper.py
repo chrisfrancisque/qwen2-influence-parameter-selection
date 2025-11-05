@@ -48,6 +48,17 @@ def load_qwen2_model(
         trust_remote_code=True
     )
 
+    # Ensure pad_token_id is set in model config
+    if model.config.pad_token_id is None:
+        from transformers import AutoTokenizer
+        tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        if tokenizer.pad_token_id is not None:
+            model.config.pad_token_id = tokenizer.pad_token_id
+        else:
+            # Fallback to eos_token_id
+            model.config.pad_token_id = tokenizer.eos_token_id
+        print(f"  Set pad_token_id to: {model.config.pad_token_id}")
+
     # Move to device if specified
     if device is not None:
         model = model.to(device)
