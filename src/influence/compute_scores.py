@@ -68,34 +68,24 @@ def compute_influence_scores(
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print_once(f"  Trainable parameters for gradient: {trainable_params:,}")
 
-    # Create dataloader
-    # For single full-batch: batch_size should equal dataset size (1000)
-    if len(train_dataset) != batch_size:
-        print_once(f"\nWARNING: Dataset size ({len(train_dataset)}) != batch_size ({batch_size})")
-        print_once(f"  Expected single full-batch with batch_size={len(train_dataset)}")
+    # Create dataloader with smaller batch size for gradient accumulation
+    # Use smaller batches to avoid OOM, but accumulate gradients across all samples
+    micro_batch_size = min(batch_size, 128)  # Max 128 per micro-batch to avoid OOM
 
     dataloader = create_dataloader(
         train_dataset,
-        batch_size=batch_size,
-        shuffle=False,  # No need to shuffle for single batch
+        batch_size=micro_batch_size,
+        shuffle=False,  # No shuffling for reproducibility
         drop_last=False
     )
 
-    print_once(f"\nDataloader setup:")
-    print_once(f"  Dataset size: {len(train_dataset)}")
-    print_once(f"  Batch size: {batch_size}")
-    print_once(f"  Num batches: {len(dataloader)}")
+    num_batches = len(dataloader)
+    total_samples = len(train_dataset)
 
-    if len(dataloader) > 1:
-        print_once(f"\n  WARNING: Multiple batches detected ({len(dataloader)})")
-        print_once(f"  Using first batch only for single-batch gradient")
-
-    # Get first (and ideally only) batch
-    batch = next(iter(dataloader))
-    batch = {k: v.to(device) for k, v in batch.items()}
-
-    actual_batch_size = batch['labels'].size(0)
-    print_once(f"\nComputing gradient on batch of size: {actual_batch_size}")
+    print_once(f"\nDataloader setup (gradient accumulation):")
+    print_once(f"  Total samples: {total_samples}")
+    print_once(f"  Micro-batch size: {micro_batch_size}")
+    print_once(f"  Num micro-batches: {num_batches}")
 
     # Set model to train mode for gradient computation
     model.train()
@@ -103,26 +93,40 @@ def compute_influence_scores(
     # Zero gradients
     model.zero_grad()
 
-    # Forward pass
-    outputs = model(
-        input_ids=batch['input_ids'],
-        attention_mask=batch['attention_mask']
-    )
-    logits = outputs.logits
-
-    # Compute loss
+    # Accumulate gradients across all batches
     criterion = nn.CrossEntropyLoss()
-    loss = criterion(logits, batch['labels'])
+    total_loss = 0.0
 
-    print_once(f"  Batch loss: {loss.item():.4f}")
+    print_once(f"\nComputing gradients with accumulation...")
 
-    # Backward pass to compute gradients
-    print_once("\nComputing gradients...")
-    loss.backward()
+    for batch_idx, batch in enumerate(dataloader):
+        batch = {k: v.to(device) for k, v in batch.items()}
 
-    # Mark step for TPU
+        # Forward pass
+        outputs = model(
+            input_ids=batch['input_ids'],
+            attention_mask=batch['attention_mask']
+        )
+        logits = outputs.logits
+
+        # Compute loss (normalized by total samples for proper averaging)
+        loss = criterion(logits, batch['labels'])
+        normalized_loss = loss * (len(batch['labels']) / total_samples)
+
+        # Backward pass (accumulate gradients)
+        normalized_loss.backward()
+
+        total_loss += loss.item() * len(batch['labels'])
+
+        if (batch_idx + 1) % max(1, num_batches // 4) == 0:
+            print_once(f"  Processed {batch_idx + 1}/{num_batches} batches")
+
+    # Mark step for TPU after all gradients accumulated
     if use_tpu:
         mark_step()
+
+    avg_loss = total_loss / total_samples
+    print_once(f"\n  Average loss across all samples: {avg_loss:.4f}")
 
     # Compute influence scores: score_i = sign(θ_i) × ∂L/∂θ_i
     print_once("\nComputing influence scores: score_i = sign(θ_i) × grad_i")
