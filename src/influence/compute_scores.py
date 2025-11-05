@@ -90,6 +90,11 @@ def compute_influence_scores(
     # Set model to train mode for gradient computation
     model.train()
 
+    # Enable gradient checkpointing to save memory
+    if hasattr(model, 'gradient_checkpointing_enable'):
+        model.gradient_checkpointing_enable()
+        print_once("  Enabled gradient checkpointing")
+
     # Zero gradients
     model.zero_grad()
 
@@ -118,15 +123,20 @@ def compute_influence_scores(
 
         total_loss += loss.item() * len(batch['labels'])
 
+        # Periodic mark_step to avoid memory buildup
+        if use_tpu and (batch_idx + 1) % 2 == 0:
+            mark_step()
+
         if (batch_idx + 1) % max(1, num_batches // 4) == 0:
             print_once(f"  Processed {batch_idx + 1}/{num_batches} batches")
 
-    # Mark step for TPU after all gradients accumulated
+    # Final mark step for TPU
     if use_tpu:
+        print_once("  Synchronizing TPU...")
         mark_step()
 
     avg_loss = total_loss / total_samples
-    print_once(f"\n  Average loss across all samples: {avg_loss:.4f}")
+    print_once(f"  Average loss across all samples: {avg_loss:.4f}")
 
     # Compute influence scores: score_i = sign(θ_i) × ∂L/∂θ_i
     print_once("\nComputing influence scores: score_i = sign(θ_i) × grad_i")
