@@ -139,67 +139,46 @@ def select_parameters_to_mask(
         print_once("\nWARNING: No eligible parameters found!")
         return {}
 
-    # Step 2: Flatten all eligible scores with tracking
-    print_once("\nFlattening scores for ranking...")
+    # Step 2: Concatenate all scores (vectorized, much faster than Python loops)
+    print_once("\nConcatenating scores...")
 
-    # Create list of (score_value, param_name, flat_index)
-    score_list = []
-    param_shapes = {}
-    param_flat_ranges = {}
-
-    current_offset = 0
+    flattened_scores = []
     for name, scores in eligible_params.items():
-        flat_scores = scores.flatten()
-        param_shapes[name] = scores.shape
+        flattened_scores.append(scores.flatten())
 
-        # Track range of indices for this parameter
-        param_flat_ranges[name] = (current_offset, current_offset + len(flat_scores))
+    # Concatenate into single tensor
+    all_scores = torch.cat(flattened_scores)
+    total_params = len(all_scores)
 
-        # Add to score list
-        for i, score_val in enumerate(flat_scores):
-            score_list.append((score_val.item(), name, current_offset + i))
+    print_once(f"  Total parameters: {total_params:,}")
 
-        current_offset += len(flat_scores)
+    # Step 3: Find threshold using torch.kthvalue (O(n) vs O(n log n) for sorting)
+    num_to_mask = int(total_params * mask_fraction)
+    print_once(f"\nSelecting bottom {mask_fraction:.2%} = {num_to_mask:,} parameters")
 
-    print_once(f"  Total flattened scores: {len(score_list):,}")
+    if num_to_mask == 0:
+        print_once("  No parameters to mask!")
+        return {}
 
-    # Step 3: Sort by score (ascending = most negative first)
-    print_once("\nSorting scores...")
-    score_list.sort(key=lambda x: x[0])
+    # Find the k-th smallest value as threshold
+    print_once("  Finding threshold (this may take a minute)...")
+    threshold_score = torch.kthvalue(all_scores, num_to_mask).values.item()
 
-    # Step 4: Select bottom k%
-    num_to_mask = int(len(score_list) * mask_fraction)
-    print_once(f"\nSelecting bottom {mask_fraction:.2%} = {num_to_mask:,} parameters to mask")
+    print_once(f"  Threshold score: {threshold_score:.6f}")
+    print_once(f"  Min score: {all_scores.min().item():.6f}")
+    print_once(f"  Max score: {all_scores.max().item():.6f}")
 
-    # Get the threshold score
-    if num_to_mask > 0:
-        threshold_score = score_list[num_to_mask - 1][0]
-        print_once(f"  Threshold score: {threshold_score:.6f}")
-        print_once(f"  Min score: {score_list[0][0]:.6f}")
-        print_once(f"  Max score: {score_list[-1][0]:.6f}")
-
-    # Step 5: Create mask tensors
+    # Step 4: Create masks by thresholding (vectorized)
     print_once("\nCreating mask tensors...")
 
-    # Initialize mask dict with False (don't mask) for all parameters
     masks = {}
     for name, scores in eligible_params.items():
-        masks[name] = torch.zeros_like(scores, dtype=torch.bool)
+        # Vectorized comparison: True where score <= threshold
+        mask = scores <= threshold_score
 
-    # Mark selected parameters as True (mask these)
-    for i in range(num_to_mask):
-        score_val, param_name, flat_idx = score_list[i]
-
-        # Get the flat range for this parameter
-        start_idx, end_idx = param_flat_ranges[param_name]
-        local_idx = flat_idx - start_idx
-
-        # Unflatten the index to get original coordinates
-        shape = param_shapes[param_name]
-        unflat_idx = torch.tensor(local_idx).unravel_index(shape)
-
-        # Set mask
-        masks[param_name][unflat_idx] = True
+        num_masked_here = mask.sum().item()
+        if num_masked_here > 0:
+            masks[name] = mask
 
     # Verify mask counts
     total_masked = sum(mask.sum().item() for mask in masks.values())
