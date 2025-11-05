@@ -150,24 +150,6 @@ python scripts/3_analyze_results.py --results outputs/results/combined_results_2
 
 Generates comparison plots and statistical analysis.
 
-## Expected Runtime
-
-- **Per-condition**: 5 min (Baseline) to 2.5 hours (Full FT)
-- **Total (16 conditions)**: ~45 hours
-- **With 4-core TPU parallelism**: ~12-15 hours wall-clock
-- **Cost**: ~$140 (TPU v5p)
-
-## Expected Results
-
-| Dataset  | Baseline | Influence | LoRA  | Full FT |
-|----------|----------|-----------|-------|---------|
-| SST-2    | 72%      | 72±1%     | 84%   | 86.5%   |
-| AG News  | 68%      | 68±1%     | 82%   | 84%     |
-| DBPedia  | 64%      | 64±1%     | 79%   | 81.5%   |
-| Yelp     | 70%      | 70±1%     | 83%   | 85%     |
-
-**Hypothesis**: If Influence > Baseline, masking successfully removed detrimental parameters.
-
 ## Configuration
 
 Edit `config/experiment.yaml` to adjust:
