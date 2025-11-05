@@ -75,7 +75,7 @@ def run_experiment(
 
     # Get hyperparameters
     model_dtype = experiment_config['model']['dtype']
-    batch_size = experiment_config['data']['batch_size']
+    batch_size = experiment_config['data'].get('batch_size', experiment_config['data'].get('effective_batch_size', 128))
 
     influence_config = experiment_config['influence']
     lora_config = experiment_config['training']['lora']
