@@ -70,7 +70,8 @@ def compute_influence_scores(
 
     # Create dataloader with smaller batch size for gradient accumulation
     # Use smaller batches to avoid OOM, but accumulate gradients across all samples
-    micro_batch_size = min(batch_size, 128)  # Max 128 per micro-batch to avoid OOM
+    # TPU needs very small batches due to memory constraints
+    micro_batch_size = 32 if use_tpu else min(batch_size, 128)
 
     dataloader = create_dataloader(
         train_dataset,
@@ -89,11 +90,6 @@ def compute_influence_scores(
 
     # Set model to train mode for gradient computation
     model.train()
-
-    # Enable gradient checkpointing to save memory
-    if hasattr(model, 'gradient_checkpointing_enable'):
-        model.gradient_checkpointing_enable()
-        print_once("  Enabled gradient checkpointing")
 
     # Zero gradients
     model.zero_grad()
