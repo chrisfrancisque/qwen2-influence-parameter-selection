@@ -165,8 +165,12 @@ def create_baseline_checkpoint(
     if is_master_ordinal():
         save_path.mkdir(parents=True, exist_ok=True)
 
+        # Move model to CPU before saving (required for TPU)
+        print_once("\nMoving model to CPU for saving...")
+        model_cpu = model.cpu()
+
         # Save model
-        model.save_pretrained(str(save_path))
+        model_cpu.save_pretrained(str(save_path))
 
         # Save training info
         import json
