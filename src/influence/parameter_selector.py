@@ -152,17 +152,19 @@ def select_parameters_to_mask(
 
     print_once(f"  Total parameters: {total_params:,}")
 
-    # Step 3: Find threshold using torch.kthvalue (O(n) vs O(n log n) for sorting)
+    # Step 3: Find threshold using kthvalue (O(n) vs O(n log n) for sorting)
     num_to_mask = int(total_params * mask_fraction)
-    print_once(f"\nSelecting bottom {mask_fraction:.2%} = {num_to_mask:,} parameters")
+    print_once(f"\nSelecting top {mask_fraction:.2%} = {num_to_mask:,} parameters (most detrimental)")
 
     if num_to_mask == 0:
         print_once("  No parameters to mask!")
         return {}
 
-    # Find the k-th smallest value as threshold
+    # Find the k-th largest value as threshold (total_params - num_to_mask + 1 smallest)
+    # This gives us the threshold above which we mask
     print_once("  Finding threshold (this may take a minute)...")
-    threshold_score = torch.kthvalue(all_scores, num_to_mask).values.item()
+    k_largest_index = total_params - num_to_mask + 1
+    threshold_score = torch.kthvalue(all_scores, k_largest_index).values.item()
 
     print_once(f"  Threshold score: {threshold_score:.6f}")
     print_once(f"  Min score: {all_scores.min().item():.6f}")
@@ -173,8 +175,8 @@ def select_parameters_to_mask(
 
     masks = {}
     for name, scores in eligible_params.items():
-        # Vectorized comparison: True where score <= threshold
-        mask = scores <= threshold_score
+        # Vectorized comparison: True where score >= threshold (top scores = most detrimental)
+        mask = scores >= threshold_score
 
         num_masked_here = mask.sum().item()
         if num_masked_here > 0:
