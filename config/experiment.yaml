@@ -61,7 +61,7 @@ training:
 
 # Influence computation
 influence:
-  mask_fraction: 0.005  # Mask top 0.5% of parameters (most detrimental)
+  mask_fraction: 0.05  # Mask top 5% of parameters (most detrimental)
 
   # Modules to include in masking
   include_patterns:
