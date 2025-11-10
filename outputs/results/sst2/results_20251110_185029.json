@@ -1,0 +1,63 @@
+{
+  "dataset": "sst2",
+  "timestamp": "2025-11-10T18:29:18.054281",
+  "config": {
+    "num_labels": 2,
+    "train_samples": 1000,
+    "val_samples": 872,
+    "batch_size": 128,
+    "use_tpu": true,
+    "model_dtype": "bfloat16"
+  },
+  "arms": {
+    "baseline": {
+      "arm": "baseline",
+      "val_accuracy": 0.6777522935779816,
+      "val_macro_f1": 0.6682408500590319,
+      "val_loss": 0.6311383928571429,
+      "epochs_run": 0,
+      "optimizer_steps": 0,
+      "tokens_processed": 0,
+      "wall_time_minutes": 1.2160773754119873,
+      "notes": "Pretrained baseline (frozen backbone + 1-epoch head)"
+    },
+    "influence": {
+      "arm": "influence",
+      "val_accuracy": 0.5091743119266054,
+      "val_macro_f1": 0.6747720364741642,
+      "val_loss": 50.142857142857146,
+      "epochs_run": 0,
+      "optimizer_steps": 0,
+      "tokens_processed": 0,
+      "num_masked_params": 17959288,
+      "mask_fraction": 0.05,
+      "total_params": 494034560,
+      "wall_time_minutes": 6.779546705881755,
+      "notes": "Influence-based masking (5.0% params masked)"
+    },
+    "lora": {
+      "arm": "lora",
+      "val_accuracy": 0.8956422018348624,
+      "val_macro_f1": 0.9020452099031216,
+      "val_loss": 0.39174107142857145,
+      "epochs_run": 5,
+      "optimizer_steps": 40,
+      "tokens_processed": 1280000,
+      "lora_rank": 8,
+      "lora_alpha": 16,
+      "wall_time_minutes": 6.902133925755819,
+      "notes": "LoRA (rank=8, alpha=16)"
+    },
+    "fullft": {
+      "arm": "fullft",
+      "val_accuracy": 0.8899082568807339,
+      "val_macro_f1": 0.8940397350993378,
+      "val_loss": 0.4140625,
+      "epochs_run": 5,
+      "optimizer_steps": 40,
+      "tokens_processed": 1280000,
+      "wall_time_minutes": 6.242836133639018,
+      "notes": "Full fine-tuning (entire model)"
+    }
+  }
+}
