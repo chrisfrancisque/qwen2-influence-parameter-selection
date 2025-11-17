@@ -53,28 +53,11 @@ def main():
     sci_masked_checkpoint.parent.mkdir(parents=True, exist_ok=True)
     sci_scores_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Setup device - auto-detect TPU
-    use_tpu = False
-    device = None
-
-    try:
-        import torch_xla.core.xla_model as xm
-        device = xm.xla_device()
-        use_tpu = True
-        print("\nUsing TPU")
-    except ImportError:
-        if torch.cuda.is_available():
-            print("\nUsing CUDA")
-            device = torch.device('cuda')
-        else:
-            print("\nUsing CPU")
-            device = torch.device('cpu')
-
     # =========================================================================
-    # STEP 1: Load and prepare datasets
+    # STEP 1: Load and prepare datasets (BEFORE TPU initialization)
     # =========================================================================
     print("\n" + "=" * 80)
-    print("STEP 1: Loading Coding Datasets")
+    print("STEP 1: Loading Coding Datasets (on CPU)")
     print("=" * 80)
 
     model_name = config['model']['name']
@@ -94,6 +77,25 @@ def main():
     print(f"\nDatasets loaded successfully:")
     print(f"  FFT dataset: {len(fft_dataset)} samples")
     print(f"  SCI dataset: {len(sci_dataset)} samples")
+
+    # =========================================================================
+    # Setup device - auto-detect TPU (AFTER data loading)
+    # =========================================================================
+    use_tpu = False
+    device = None
+
+    try:
+        import torch_xla.core.xla_model as xm
+        device = xm.xla_device()
+        use_tpu = True
+        print("\nUsing TPU for training")
+    except ImportError:
+        if torch.cuda.is_available():
+            print("\nUsing CUDA for training")
+            device = torch.device('cuda')
+        else:
+            print("\nUsing CPU for training")
+            device = torch.device('cpu')
 
     # =========================================================================
     # STEP 2: Full Fine-Tuning

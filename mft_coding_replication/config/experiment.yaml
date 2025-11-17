@@ -14,7 +14,7 @@ hardware:
 # Data settings
 data:
   seed: 42
-  max_seq_length: 2048  # Longer context for code
+  max_seq_length: 1024  # Reduced for TPU XLA compatibility
 
   # FFT training: 10k samples from each dataset
   fft_samples_per_dataset: 10000

@@ -174,17 +174,19 @@ def load_coding_datasets(
         print(f"  FFT samples: {len(fft_dataset)}")
         print(f"  SCI samples: {len(sci_dataset)}")
 
-        # Apply chat template and tokenize
+        # Apply chat template and tokenize (batched to avoid XLA compilation issues)
         print(f"Tokenizing {dataset_name}...")
         fft_dataset = fft_dataset.map(
             lambda x: apply_chat_template_to_example(x, tokenizer, max_seq_length),
             remove_columns=fft_dataset.column_names,
+            batched=False,  # Process one at a time to avoid XLA issues
             desc=f"Tokenizing FFT {dataset_name}"
         )
 
         sci_dataset = sci_dataset.map(
             lambda x: apply_chat_template_to_example(x, tokenizer, max_seq_length),
             remove_columns=sci_dataset.column_names,
+            batched=False,  # Process one at a time to avoid XLA issues
             desc=f"Tokenizing SCI {dataset_name}"
         )
 
