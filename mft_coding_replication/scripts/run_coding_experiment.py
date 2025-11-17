@@ -53,19 +53,22 @@ def main():
     sci_masked_checkpoint.parent.mkdir(parents=True, exist_ok=True)
     sci_scores_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Setup device
-    use_tpu = config['hardware'].get('use_tpu', False)
+    # Setup device - auto-detect TPU
+    use_tpu = False
+    device = None
 
-    if use_tpu:
-        print("\nUsing TPU")
+    try:
         import torch_xla.core.xla_model as xm
         device = xm.xla_device()
-    elif torch.cuda.is_available():
-        print("\nUsing CUDA")
-        device = torch.device('cuda')
-    else:
-        print("\nUsing CPU")
-        device = torch.device('cpu')
+        use_tpu = True
+        print("\nUsing TPU")
+    except ImportError:
+        if torch.cuda.is_available():
+            print("\nUsing CUDA")
+            device = torch.device('cuda')
+        else:
+            print("\nUsing CPU")
+            device = torch.device('cpu')
 
     # =========================================================================
     # STEP 1: Load and prepare datasets
