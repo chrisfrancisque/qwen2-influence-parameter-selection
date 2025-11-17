@@ -1,0 +1,33 @@
+{
+  "dataset": "yelp",
+  "timestamp": "2025-11-17T19:12:08.560172",
+  "config": {
+    "num_labels": 5,
+    "train_samples": 1000,
+    "val_samples": 50000,
+    "batch_size": 128,
+    "mask_fraction": 0.01,
+    "use_tpu": true,
+    "model_dtype": "bfloat16"
+  },
+  "full_ft": {
+    "training_time_minutes": 0.3023790240287781,
+    "val_accuracy": 0.48924,
+    "val_macro_f1": 0.4918224454992444,
+    "val_loss": 1.4653732416879794,
+    "epochs_run": 5,
+    "optimizer_steps": 40
+  },
+  "influence_masked": {
+    "influence_time_minutes": 4.642166415850322,
+    "val_accuracy": 0.17898,
+    "val_macro_f1": 0.088842728392718,
+    "val_loss": 26.324488491048594,
+    "num_masked_params": 3588792,
+    "mask_fraction": 0.01
+  },
+  "comparison": {
+    "accuracy_change": -0.31026,
+    "accuracy_change_pct": -63.41672798626441
+  }
+}

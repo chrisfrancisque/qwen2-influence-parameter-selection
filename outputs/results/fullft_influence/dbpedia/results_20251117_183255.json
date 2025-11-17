@@ -1,0 +1,33 @@
+{
+  "dataset": "dbpedia",
+  "timestamp": "2025-11-17T18:32:55.537310",
+  "config": {
+    "num_labels": 14,
+    "train_samples": 1000,
+    "val_samples": 70000,
+    "batch_size": 128,
+    "mask_fraction": 0.01,
+    "use_tpu": true,
+    "model_dtype": "bfloat16"
+  },
+  "full_ft": {
+    "training_time_minutes": 0.2970688899358114,
+    "val_accuracy": 0.9493714285714285,
+    "val_macro_f1": 0.949302022975902,
+    "val_loss": 0.23253321037431957,
+    "epochs_run": 5,
+    "optimizer_steps": 40
+  },
+  "influence_masked": {
+    "influence_time_minutes": 4.70348889430364,
+    "val_accuracy": 0.07142857142857142,
+    "val_macro_f1": 0.009523809523809523,
+    "val_loss": 39.33066727605119,
+    "num_masked_params": 3612032,
+    "mask_fraction": 0.01
+  },
+  "comparison": {
+    "accuracy_change": -0.8779428571428571,
+    "accuracy_change_pct": -92.47622487059107
+  }
+}
