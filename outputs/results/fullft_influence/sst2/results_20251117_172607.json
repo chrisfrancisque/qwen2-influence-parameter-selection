@@ -1,0 +1,33 @@
+{
+  "dataset": "sst2",
+  "timestamp": "2025-11-17T17:26:07.321300",
+  "config": {
+    "num_labels": 2,
+    "train_samples": 1000,
+    "val_samples": 872,
+    "batch_size": 128,
+    "mask_fraction": 0.01,
+    "use_tpu": true,
+    "model_dtype": "bfloat16"
+  },
+  "full_ft": {
+    "training_time_minutes": 0.2880885720252991,
+    "val_accuracy": 0.8956422018348624,
+    "val_macro_f1": 0.896,
+    "val_loss": 0.44614955357142855,
+    "epochs_run": 5,
+    "optimizer_steps": 40
+  },
+  "influence_masked": {
+    "influence_time_minutes": 4.78135495185852,
+    "val_accuracy": 0.5091743119266054,
+    "val_macro_f1": 0.6747720364741642,
+    "val_loss": 40.964285714285715,
+    "num_masked_params": 3585535,
+    "mask_fraction": 0.01
+  },
+  "comparison": {
+    "accuracy_change": -0.386467889908257,
+    "accuracy_change_pct": -43.14980793854034
+  }
+}

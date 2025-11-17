@@ -1,0 +1,33 @@
+{
+  "dataset": "agnews",
+  "timestamp": "2025-11-17T17:43:50.786762",
+  "config": {
+    "num_labels": 4,
+    "train_samples": 1000,
+    "val_samples": 7600,
+    "batch_size": 128,
+    "mask_fraction": 0.01,
+    "use_tpu": true,
+    "model_dtype": "bfloat16"
+  },
+  "full_ft": {
+    "training_time_minutes": 0.293661638100942,
+    "val_accuracy": 0.8298684210526316,
+    "val_macro_f1": 0.8296375344262621,
+    "val_loss": 0.5255533854166666,
+    "epochs_run": 5,
+    "optimizer_steps": 40
+  },
+  "influence_masked": {
+    "influence_time_minutes": 4.881247154871622,
+    "val_accuracy": 0.25,
+    "val_macro_f1": 0.1,
+    "val_loss": 1.4927083333333333,
+    "num_masked_params": 3599195,
+    "mask_fraction": 0.01
+  },
+  "comparison": {
+    "accuracy_change": -0.5798684210526316,
+    "accuracy_change_pct": -69.8747423497701
+  }
+}
