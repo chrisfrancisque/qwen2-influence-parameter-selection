@@ -1,0 +1,97 @@
+# MFT Coding Domain Replication
+# Using Qwen2-0.5B with Sign-Corrected Influence instead of learned masks
+
+# Model settings
+model:
+  name: "Qwen/Qwen2-0.5B"
+  cache_dir: null
+
+# Hardware
+hardware:
+  device: "tpu"
+  tpu_cores: 8
+
+# Data settings
+data:
+  seed: 42
+  max_seq_length: 2048  # Longer context for code
+
+  # FFT training: 10k samples from each dataset
+  fft_samples_per_dataset: 10000
+
+  # SCI gradient computation: ~333 samples from each dataset
+  sci_samples_per_dataset: 333
+
+  # Dataset configurations
+  datasets:
+    evol_code_alpaca:
+      hf_name: "theblackcat102/evol-codealpaca-v1"
+      split: "train"
+    code_alpaca:
+      hf_name: "sahil2801/CodeAlpaca-20k"
+      split: "train"
+    tulu3_persona_python:
+      hf_name: "allenai/tulu-3-sft-personas-math-grade"
+      split: "train"
+      # This dataset has math content, we'll filter for a Python coding subset
+      # For now, we'll use a general coding dataset or subset
+
+# Training (Full Fine-Tuning)
+training:
+  num_epochs: 3
+  batch_size: 4  # Small for TPU memory
+  gradient_accumulation_steps: 8
+  effective_batch_size: 32  # 4 * 8
+  learning_rate: 1.0e-4
+  weight_decay: 0.01
+  warmup_steps: 100
+  max_grad_norm: 1.0
+  lr_scheduler_type: "cosine"
+  save_steps: 500
+  logging_steps: 50
+
+# Sign-Corrected Influence (SCI) settings
+sci:
+  mask_fraction: 0.05  # Mask top 5% of parameters
+
+  # Target layers: Map from LLaMA layers 20-23 (out of 32) to Qwen2-0.5B
+  # 20/32 = 0.625 → 0.625 * 24 = 15
+  # 23/32 = 0.719 → 0.719 * 24 = 17.25 ≈ 17
+  target_layers:
+    start: 15  # Layer 15 (0-indexed)
+    end: 17    # Layer 17 (inclusive)
+
+  # Only mask these parameter types
+  include_patterns:
+    - "self_attn.q_proj.weight"
+    - "self_attn.k_proj.weight"
+    - "self_attn.v_proj.weight"
+    - "self_attn.o_proj.weight"
+    - "mlp.gate_proj.weight"
+    - "mlp.up_proj.weight"
+    - "mlp.down_proj.weight"
+
+  # Gradient computation settings
+  gradient_batch_size: 32  # For memory efficiency
+
+# Evaluation
+evaluation:
+  humaneval:
+    temperature: 0.2
+    top_p: 0.95
+    max_new_tokens: 512
+    num_samples: 1  # pass@1
+
+  humaneval_plus:
+    temperature: 0.2
+    top_p: 0.95
+    max_new_tokens: 512
+    num_samples: 1  # pass@1
+
+# Paths
+paths:
+  output_dir: "outputs"
+  fft_checkpoint: "outputs/checkpoints/fft_qwen2_coding"
+  sci_masked_checkpoint: "outputs/checkpoints/sci_masked_qwen2_coding"
+  sci_scores_path: "outputs/sci_scores/coding_scores.pt"
+  results_dir: "outputs/results"
