@@ -31,10 +31,9 @@ data:
       hf_name: "sahil2801/CodeAlpaca-20k"
       split: "train"
     tulu3_persona_python:
-      hf_name: "allenai/tulu-3-sft-personas-math-grade"
+      hf_name: "allenai/tulu-3-sft-personas-code"
       split: "train"
-      # This dataset has math content, we'll filter for a Python coding subset
-      # For now, we'll use a general coding dataset or subset
+      # Tulu 3 code-focused personas dataset
 
 # Training (Full Fine-Tuning)
 training:

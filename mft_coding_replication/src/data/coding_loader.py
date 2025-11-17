@@ -139,7 +139,7 @@ def load_coding_datasets(
         split = dataset_info.get('split', 'train')
 
         try:
-            dataset = load_dataset(hf_name, split=split, trust_remote_code=True)
+            dataset = load_dataset(hf_name, split=split)
         except Exception as e:
             print(f"Warning: Could not load {hf_name}: {e}")
             print(f"Skipping {dataset_name}")
